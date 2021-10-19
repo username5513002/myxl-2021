@@ -77,10 +77,10 @@ def get_arguments():
 	)
 	parser.add_argument(
 		'--threads',
-		help='--threads 8',
+		help='--threads 16',
 		dest='threads',
 		type=int,
-		default=8,
+		default=16,
 	)
 
 	return parser.parse_args()
