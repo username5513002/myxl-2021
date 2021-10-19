@@ -324,3 +324,109 @@ class MyXL(multithreading.MultiThreadRequest):
 			result = getattr(self, f'task__{event_type}')(event.get('payload'))
 			if result is not None and result:
 				self._task_success_event_list.append(event)
+
+	def task__buy_package(self, payload):
+		msisdn = self.msisdn
+
+		subscriber_number = payload['subscriber_number'] = str(
+			payload.get('subscriber_number', self.default_subscriber_number)
+		)
+		service_id = payload['service_id'] = str(payload.get('service_id', ''))
+		price_plan = payload['price_plan'] = str(payload.get('price_plan', '513738114'))
+		platform = payload['platform'] = str(payload.get('platform', self.default_platform))
+
+		while True:
+			request_id = self.get_request_id()
+			transaction_id = self.get_transaction_id()
+
+			content = {
+				'Body': {
+					'HeaderRequest': {
+						'applicationID': '3',
+						'applicationSubID': '1',
+						'touchpoint': 'MYXL',
+						'requestID': request_id,
+						'msisdn': msisdn,
+						'serviceID': service_id,
+					},
+					'opPurchase': {
+						'msisdn': msisdn,
+						'serviceid': service_id,
+					},
+					'XBOXRequest': {
+						'requestName': 'GetSubscriberMenuId',
+						'Subscriber_Number': subscriber_number,
+						'Source': 'mapps',
+						'Trans_ID': transaction_id,
+						'Home_POC': 'JK0',
+						'PRICE_PLAN': price_plan,
+						'PayCat': 'PRE-PAID',
+						'Active_End': '20190704',
+						'Grace_End': '20190803',
+						'Rembal': '0',
+						'IMSI': self.imsi,
+						'IMEI': self.imei,
+						'Shortcode': 'mapps',
+					},
+					'Header': {
+						'ReqID': request_id,
+					}
+				},
+				'packageRegUnreg': 'Reg',
+				'packageAmt': '11.900',
+				'serviceId': service_id,
+				'platform': platform,
+			}
+
+			response = self.request(
+				'POST', 'pre/opPurchase', headers=self.get_headers(), json=self.get_content(content)
+			)
+			if response is None:
+				continue
+
+			response_json = response.json()
+			status = response_json.get('SOAP-ENV:Envelope', {})
+			status = status.get('SOAP-ENV:Body', [{}])[0]
+			status = status.get('ns0:opPurchaseRs', [{}])[0]
+			status = status.get('ns0:Status', [''])[0]
+
+			CC = self.logger.special_chars['CC']
+			R1 = self.logger.special_chars['R1']
+			Y2 = self.logger.special_chars['Y2']
+
+			status_info = f'{service_id} (sn {subscriber_number}) (pp {price_plan}) (p {platform})'
+
+			if status == 'IN PROGRESS':
+				self.get_package_info(payload, status_info)
+
+			elif status == 'DUPLICATE':
+				self.log('\n'.join([
+					f'{Y2}{status_info}{CC}',
+					'  Duplicate',
+					'',
+				]))
+
+			elif response_json.get('responseCode') in ['04', '21']:
+				self.log(
+					'\n'.join([
+						f"{R1}{status_info}{CC}",
+						f"  {response_json['message']}",
+						f"",
+					]),
+					level='DEBUG',
+				)
+
+			else:
+				self.log(
+					'\n'.join([
+						f'{R1}{status_info}{CC}',
+						f'  {response_json}',
+						'',
+					]),
+					level='CRITICAL',
+				)
+
+			if status in ['IN PROGRESS', 'DUPLICATE']:
+				return True
+
+			return
