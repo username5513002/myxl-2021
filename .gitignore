@@ -167,4 +167,5 @@ dmypy.json
 
 *.bak
 *.lst
+*.txt
 account.json
