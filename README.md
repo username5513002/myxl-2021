@@ -1,6 +1,6 @@
 # MyXL 2021
 
-This project is myxl project, but in 2021 version.
+This project is [myxl](https://github.com/aztecrabbit/myxl) project, but in 2021 version.
 
 
 What this project do?
