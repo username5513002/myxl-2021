@@ -13,3 +13,9 @@ How to request features?
 ------------------------
 
 Please make issue in this repository, or click [here](https://github.com/username5513000/myxl-2021/issues)
+
+
+How to contribute to this project?
+----------------------------------
+
+Please look at issue page, and then contribute if you find that issue easy to fixed.
