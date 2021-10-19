@@ -51,10 +51,6 @@ class MyXL(multithreading.MultiThreadRequest):
 
 			return result
 
-	"""
-	Get
-	"""
-
 	def get_request_id(self):
 		return datetime.datetime.now().strftime('%Y%m%d%H%M%S')
 
@@ -123,9 +119,6 @@ class MyXL(multithreading.MultiThreadRequest):
 		subscriber_number = subscriber_number.get('diabilling:SubscriberID', [''])[0]
 
 		return subscriber_number
-
-	"""
-	"""
 
 	def is_signed_in(self):
 		response = self.request(
